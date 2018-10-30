@@ -55,7 +55,7 @@ int main()
             reds.push_back(p);
     }
     sort(reds.begin(), reds.end(), compRU);
-    point st = point(xmin, ymax) + point(-0.2, 1);
+    point st = point(xmin, ymax) + point(-0.4, 1);
     bool fst = true, fstchain = false;
     rPoly.push_back(st);
     double prevx = -INF, sy = ymax + 0.9;
@@ -65,32 +65,32 @@ int main()
         {
             if(!fst)
             {
-                if(rPoly.back() != point(prevx - 0.1, sy))
-                    rPoly.push_back(point(prevx - 0.1, sy));
-                if(rPoly.back() != point(p.x - 0.2, sy))
-                    rPoly.push_back(point(p.x - 0.2, sy));
+                if(rPoly.back() != point(prevx - 0.3, sy))
+                    rPoly.push_back(point(prevx - 0.3, sy));
+                if(rPoly.back() != point(p.x - 0.4, sy))
+                    rPoly.push_back(point(p.x - 0.4, sy));
             }
             else
             {
-                if(rPoly.back() != point(xmin - 0.2, sy))
-                    rPoly.push_back(point(xmin - 0.2, sy));
-                if(rPoly.back() != point(p.x - 0.2, sy))
-                    rPoly.push_back(point(p.x - 0.2, sy));
+                if(rPoly.back() != point(xmin - 0.4, sy))
+                    rPoly.push_back(point(xmin - 0.4, sy));
+                if(rPoly.back() != point(p.x - 0.4, sy))
+                    rPoly.push_back(point(p.x - 0.4, sy));
             }
             fstchain = true;
         }
 
         if(fstchain)
-            rPoly.push_back(p + point(-0.2, -0.1));
+            rPoly.push_back(p + point(-0.4, -0.1));
         else
-            rPoly.push_back(p + point(-0.1, -0.1));
+            rPoly.push_back(p + point(-0.3, -0.1));
         rPoly.push_back(p + point(0.1, -0.1));
         rPoly.push_back(p + point(0.1, 0.1));
-        rPoly.push_back(p + point(-0.1, 0.1));
+        rPoly.push_back(p + point(-0.3, 0.1));
         prevx = p.x;
         fst = false;
     }
-    rPoly.push_back(point(prevx - 0.1, sy + 0.1));
+    rPoly.push_back(point(prevx - 0.3, sy + 0.1));
     cout << rPoly.size() << endl;
     for(auto p : rPoly)
         cout << p.x << " " << p.y << endl;
@@ -99,7 +99,7 @@ int main()
     // Azules
 
     sort(blues.begin(), blues.end(), compLD);
-    st = point(xmax, ymin) + point(0.2, -1);
+    st = point(xmax, ymin) + point(0.4, -1);
     fst = true, fstchain = false;
     bPoly.push_back(st);
     prevx = -INF, sy = ymin - 0.9;
@@ -109,17 +109,17 @@ int main()
         {
             if(!fst)
             {
-                if(bPoly.back() != point(prevx + 0.15, sy))
-                    bPoly.push_back(point(prevx + 0.15, sy));
-                if(bPoly.back() != point(p.x + 0.25, sy))
-                    bPoly.push_back(point(p.x + 0.25, sy));
+                if(bPoly.back() != point(prevx + 0.3, sy))
+                    bPoly.push_back(point(prevx + 0.3, sy));
+                if(bPoly.back() != point(p.x + 0.4, sy))
+                    bPoly.push_back(point(p.x + 0.4, sy));
             }
             else
             {
-                if(bPoly.back() != point(xmax + 0.25, sy))
-                    bPoly.push_back(point(xmax + 0.25, sy));
-                if(bPoly.back() != point(p.x + 0.25, sy))
-                    bPoly.push_back(point(p.x + 0.25, sy));
+                if(bPoly.back() != point(xmax + 0.4, sy))
+                    bPoly.push_back(point(xmax + 0.4, sy));
+                if(bPoly.back() != point(p.x + 0.4, sy))
+                    bPoly.push_back(point(p.x + 0.4, sy));
             }
             fstchain = true;
         }
@@ -127,16 +127,16 @@ int main()
             fstchain = false;
 
         if(fstchain)
-            bPoly.push_back(p + point(0.25, 0.15));
+            bPoly.push_back(p + point(0.4, 0.1));
         else
-            bPoly.push_back(p + point(0.15, 0.15));
-        bPoly.push_back(p + point(-0.05, 0.15));
-        bPoly.push_back(p + point(-0.05, -0.05));
-        bPoly.push_back(p + point(0.15, -0.05));
+            bPoly.push_back(p + point(0.3, 0.1));
+        bPoly.push_back(p + point(-0.1, 0.1));
+        bPoly.push_back(p + point(-0.1, -0.1));
+        bPoly.push_back(p + point(0.3, -0.1));
         prevx = p.x;
         fst = false;
     }
-    bPoly.push_back(point(prevx + 0.1, sy - 0.1));
+    bPoly.push_back(point(prevx + 0.3, sy - 0.1));
     cout << bPoly.size() << endl;
     for(auto p : bPoly)
         cout << p.x << " " << p.y << endl;
