@@ -3,71 +3,63 @@ using namespace std;
 
 const int MAXN = 110;
 const int INF = 1e9;
+int dist[MAXN], ptr[MAXN], s, t;
 
-vector<int> adj[MAXN];
-int cap[MAXN][MAXN];
-int d[MAXN];
-int parent[MAXN];
-int s, t;
+struct Edge {
+    int to, rev, f, cap;
+};
 
-void addEdge(int u, int v, int c)
+vector<Edge> G[MAXN];
+
+void addEdge(int u, int v, int cap)
 {
-    adj[u].push_back(v);
-    cap[u][v] = c;
-}
-
-int augment()
-{
-    int flow = INF;
-    for(int v = t; v != s; v = parent[v])
-    {
-        if(v == s)
-            break;
-        flow = min(cap[parent[v]][v], flow);
-    }
-    for(int v = t; v != s; v = parent[v])
-    {
-        cap[parent[v]][v] -= flow;
-        cap[v][parent[v]] += flow;
-    }
-    return flow;
+    G[u].push_back(Edge({v, (int)G[v].size(), 0, cap}));
+    G[v].push_back(Edge({u, (int)G[u].size() - 1, 0, 0}));
 }
 
 bool bfs()
 {
-    memset(d, -1, sizeof(d));
-    memset(parent, -1,sizeof(parent));
-    queue<int> q;
-    q.push(s);
-    d[s] = 0;
-    while(!q.empty())
-    {
+    memset(dist, -1, sizeof dist);
+    queue<int> q({s});
+    dist[s] = 0;
+    while(!q.empty() && dist[t] == -1) {
         int u = q.front();
         q.pop();
-        if(u == t)
-            break;
-        for(int v : adj[u])
-        {
-            if(d[v] == -1 && cap[u][v] > 0)
-            {
-                d[v] = d[u] + 1;
-                parent[v] = u;
+        for(auto e : G[u]) {
+            int v = e.to;
+            if(dist[v] == -1 && e.f < e.cap) {
+                dist[v] = dist[u] + 1;
                 q.push(v);
             }
         }
     }
-    return (d[t] != -1);
+    return dist[t] != -1;
+}
+
+int dfs(int u, int f) {
+    if(u == t || !f)
+        return f;
+    for(int &i = ptr[u]; i < G[u].size(); i++) {
+        Edge &e = G[u][i];
+        int v = e.to;
+        if(dist[v] != dist[u] + 1)
+            continue;
+        if(int df = dfs(v, min(f, e.cap - e.f))) {
+            e.f += df;
+            G[v][e.rev].f -= df;
+            return df;
+        }
+    }
+    return 0;
 }
 
 int maxflow()
 {
     int flow = 0;
-    while(true)
-    {
-        if(!bfs())
-            break;
-        int ext = augment();
-        flow += ext;
+    while(bfs()) {
+        memset(ptr, 0, sizeof ptr);
+        while(int pushed = dfs(s, INF))
+            flow += pushed;
     }
     return flow;
 }
@@ -85,8 +77,7 @@ int main()
     for(int ww = 1; ww <= n; ww++)
     {
         for(int i = 0; i < MAXN; i++)
-            adj[i].clear();
-        memset(cap, 0, MAXN * sizeof(cap[0]));
+            G[i].clear();
 
         bool wvoter[60], wvotee[60];
         memset(wvoter, false, sizeof(wvoter));

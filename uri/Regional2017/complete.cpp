@@ -32,7 +32,8 @@ int main()
         return 0;
     }
     sort(v.rbegin(), v.rend());
-    for(auto s : v)
-        cout << s << " ";
-    cout << '\n';
+    for(int i = 0; i < v.size(); i++) {
+        cout << v[i] << (i == v.size() - 1 ? "" : " ");
+    }
+    cout << endl;
 }

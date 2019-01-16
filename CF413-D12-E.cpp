@@ -1,152 +1,102 @@
 #include <bits/stdc++.h>
 using namespace std;
+typedef pair<int, int> ii;
 
 const int MAXN = 2e5 + 1;
-const int MAXV = 2*MAXN;
 const int INF = 1e6;
-vector<int> adj[MAXN];
-vector<int> vist(MAXN);
+int ccomp, n, m, gdist[MAXN];
+set<ii> gsqs;
+map<ii, int> pos, vist;
+int comp[2*MAXN];
+char rect[2][MAXN];
+vector<ii> dir = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
-int bfs(int s, long long iwt, vector<long long> &dist)
-{
-    queue<int> q;
-    q.push(s);
+void dfs(ii s) {
     vist[s] = 1;
-    dist[s] = iwt;
-    while(!q.empty())
-    {
-        int u = q.front();
-        q.pop();
-        for(auto v : adj[u])
-        {
-            if(!vist[v])
-            {
-                dist[v] = dist[u] + 1;
-                vist[v] = 1;
-                q.push(v);
-            }
+    comp[n*s.first + s.second] = ccomp;
+    for(ii p : dir) {
+        ii v = {s.first + p.first, s.second + p.second};
+        if(v.first < 0 || v.first > 1 || v.second < 0 || v.second >= n || vist[v] || rect[v.first][v.second] == 'X')
+            continue;
+        dfs(v);
+    }
+}
+
+int dist(int x, int y) {
+    x--;
+    y--;
+    if(comp[x] != comp[y])
+        return -1;
+    ii p1 = {x % n, x / n}, p2 = {y % n, y / n};
+    if(p1.first > p2.first)
+        swap(p1, p2);
+    //cout << "(" << p1.first << ", " << p1.second << ")"<< endl;
+    //cout << "(" << p2.first << ", " << p2.second << ")" << endl;
+    auto it1 = gsqs.find(p1), it2 = gsqs.find(p2);
+    bool b1 = (it1 != gsqs.end()), b2 = (it2 != gsqs.end());
+    if(b1 && b2)
+        return abs(gdist[pos[p2]] - gdist[pos[p1]]);
+    if(!b1) {
+        auto it = gsqs.lower_bound(p1);
+        ii p = *it;
+        //cout << p.first << " " << p.second << endl;
+        if(it != gsqs.end() && p.first <= p2.first)
+            return abs(p1.first - p.first) + abs(p1.second - p.second) + dist(p.first + n*p.second + 1, p2.first + n*p2.second + 1);
+        return abs(p1.first - p2.first) + abs(p1.second - p2.second);
+    }
+    if(!b2) {
+        auto it = gsqs.lower_bound(p2);
+        if(it != gsqs.begin()) {
+            it--;
+            ii p = *it;
+            if(p.first >= p1.first)
+                return abs(p2.first - p.first) + abs(p2.second - p.second) + dist(p.first + n*p.second + 1, p1.first + n*p1.second + 1);   
         }
     }
+    return abs(p1.first - p2.first) + abs(p1.second - p2.second);
 }
 
 int main()
 {
-    int n, m, fstTop = INF, fstBot = INF;
+    ios::sync_with_stdio(false);
+    cin.tie(0);
     cin >> n >> m;
-    vector<int> xtop, xbot;
-    xtop.push_back(-1);
-    xbot.push_back(-1);
-    char rect[2][MAXN];
-    string s;
-    cin >> s;
-    for(int i = 0; i < n; i++)
-    {
-        rect[0][i] = s[i];
-        if(s[i] == 'X')
-            xtop.push_back(i);
-        else
-            fstTop = min(fstTop, i);
+    for(int i = 0; i < 2; i++) {
+        string s;
+        cin >> s;
+        for(int j = 0; j < n; j++)
+            rect[i][j] = s[j];
     }
-    cin >> s;
-    for(int i = 0; i < n; i++)
-    {
-        rect[1][i] = s[i];
-        if(s[i] == 'X')
-            xbot.push_back(i);
-        else
-            fstBot = min(fstBot, i);
-    }
-    xbot.push_back(n);
-    xtop.push_back(n);
-    for(int i = 0; i < n; i++)
-    {
-        if(i < n - 1)
-        {
-            if(rect[0][i] == '.' && rect[0][i + 1] == '.')
-            {
-                adj[i].push_back(i + 1);
-                adj[i + 1].push_back(i);
-            }
-            if(rect[1][i] == '.' && rect[1][i + 1] == '.')
-            {
-                adj[n + i].push_back(n + i + 1);
-                adj[n + i + 1].push_back(n + i);
-            }
-        }
-        if(rect[0][i] == '.' && rect[1][i] == '.')
-        {
-            adj[i].push_back(n + i);
-            adj[n + i].push_back(i);
+    for(int i = 0; i < 2*n; i++) {
+        ii p = {i/n, i % n};
+        if(!vist[p] && rect[p.first][p.second] == '.') {
+            dfs(p);
+            ccomp++;
         }
     }
-    vector<long long> dTop(MAXN), dBot(MAXN);
-    long long wt = 0;
-    for(int i = 0; i < n; i++)
-    {
-        if(rect[0][i] == 'X')
-            wt += 2*INF;
-        else
-        {
-            if(!vist[i])
-            {
-                bfs(i, wt, dTop);
-            }
+    for(int i = 0; i < n; i++) {
+        if(rect[0][i] == '.' && rect[1][i] == 'X') {
+            pos[{i, 0}] = gsqs.size();
+            gsqs.insert({i, 0});
+        }
+        if(rect[1][i] == '.' && rect[0][i] == 'X') {
+            pos[{i, 1}] = gsqs.size();
+            gsqs.insert({i, 1});
         }
     }
-    for(int i = 0; i < n; i++)
-        cout << dTop[i] << " ";
-    cout << endl;
-    vist.assign(n, 0);
-    wt = 0ll;
-    for(int i = 0; i < n; i++)
-    {
-        if(rect[1][i] == 'X')
-            wt += 2*INF;
-        else
-        {
-            if(!vist[n + i])
-            {
-                bfs(n + i, wt, dBot);
-            }
-        }
+    ii pre = {-1, -1};
+    int i = 0;
+    for(ii p : gsqs) {
+        if(pre.first >= 0)
+            gdist[i] = gdist[i - 1] + (p.first - pre.first) + (p.second != pre.second ? 1 : 0);
+        i++;
+        pre = p;
     }
-    for(int i = 0; i < m; i++)
-    {
+    //for(int i = 0; i < gsqs.size(); i++)
+    //    cout << gdist[i] << endl;
+    for(int i = 0; i < m; i++) {
         int x, y;
         cin >> x >> y;
-        x--;
-        y--;
-        long long d;
-        if(x < n && y < n)
-            d = abs(dTop[x] - dTop[y]);
-        else if(x >= n && y >= n)
-            d = abs(dBot[x] - dBot[y]);
-        else
-        {
-            // x on top, y on bottom
-            if(x > y)
-                swap(x, y);
-            y -= n;
-            int b;
-            if(x <= y)
-            {
-                // Go right from x
-                auto it = upper_bound(xtop.begin(), xtop.end(), x);
-                b = min(*it - 1, y);
-                d = 1 + dTop[b] - dTop[x] + dBot[y + n] - dBot[b + n];
-                if(rect[1][b] == 'X')
-                    d += INF;
-            }
-            else
-            { 
-                // Go right from y
-                auto it = upper_bound(xbot.begin(), xbot.end(), y);
-                b = min(*it - 1, x);
-                d = 1 + dBot[b + n] - dBot[y + n] + dTop[x] - dTop[b];
-                if(rect[0][b] == 'X')
-                    d += INF;
-            }
-        }
-        cout << (d < INF ? d : -1) << endl;
+        cout << dist(x, y) << endl;
     }
 }
