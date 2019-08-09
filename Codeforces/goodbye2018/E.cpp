@@ -1,139 +1,105 @@
 #include <bits/stdc++.h>
 using namespace std;
 typedef long long ll;
-#define int ll
 
 const int MAXN = 5e5 + 5;
-const int INF = 1e18;
-ll deg[MAXN];
-ll pref[MAXN], delta[MAXN], ndelta[MAXN], diff[MAXN], n, lv = 0;
+const ll INF = 1e18;
+ll d[MAXN], S[MAXN], f[MAXN], ub[MAXN], lb[MAXN], klb[MAXN];
 
 struct node {
-    int l, r, mn, mx;
+    int l, r;
     node *left, *right;
+    ll mn, mx;
 
+    inline void merge() { mx = max(left->mx, right->mx); mn = min(left->mn, right->mn); }
     node(int l, int r, ll *A) : l(l), r(r) {
-        if(l == r)
-            mn = mx = A[l];
+        if(l == r) mn = mx = A[l];
         else {
             int m = (l + r)/2;
             left = new node(l, m, A);
             right = new node(m + 1, r, A);
-            mn = min(left->mn, right->mn);
-            mx = max(left->mx, right->mx);
+            merge();
         }
     }
-
-    ll query(int rl, int rr) {
-        if(r < rl || rr < l)
-            return INF;
-        if(rl <= l && r <= rr)
-            return mn;
-        return min(left->query(rl, rr), right->query(rl, rr));
+    ll qmin(int rl, int rr) {
+        if(rr < l || r < rl) return INF;
+        if(rl <= l && r <= rr) return mn;
+        return min(left->qmin(rl, rr), right->qmin(rl, rr));
     }
-
-    ll querymx(int rl, int rr) {
-        if(r < rl || rr < l)
-            return -INF;
-        if(rl <= l && r <= rr)
-            return mx;
-        return max(left->querymx(rl, rr), right->querymx(rl, rr));
+    ll qmax(int rl, int rr) {
+        if(rr < l || r < rl) return -INF;
+        if(rl <= l && r <= rr) return mx;
+        return max(left->qmax(rl, rr), right->qmax(rl, rr));
     }
 };
 
-ll bs(ll bnd, int l) {
-    int lo = l, hi = n;
-    if(deg[n] > bnd || lo > hi)
-        return -1;
-    while(lo != hi) {
-        int mi = (lo + hi)/2;
-        if(deg[lo] > bnd)
-            lo = mi + 1;
-        else
-            hi = mi;
-    }
-    return lo;
-}
+bool cmp(const ll &a, const ll &b){ return a > b; }
 
-signed main() {
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    int n;
     cin >> n;
-    for(int i = 0; i < n; i++) {
-        cin >> deg[i];
-        if(deg[i] == 0)
-            lv++;
-    }
-    sort(deg, deg + n, [&](ll a, ll b){return a > b;});
-    for(int i = n; i >= 1; i--) {
-        deg[i] = deg[i - 1];
-    }
-    ll sdeg = 0;
-    for(int i = 1; i <= n; i++) {
-        //cout << deg[i] << " ";
-        sdeg += deg[i];
-        pref[i] = sdeg;
-    }
-    //cout << endl;
-    ll tot = pref[n];
-    for(ll k = 1; k <= n; k++) {
-        ll m = bs(k, k + 1ll);
-        //cout << k << " " << m << endl;
-        ll del = pref[k];
-        if(m == -1) {
-            del -= k*(n - 1ll);
-            delta[k] = del;
-        }
+    for(int i = 1; i <= n; i++)
+        cin >> d[i];
+    sort(d + 1, d + n + 1, cmp);
+    // get S values
+    S[0] = 0;
+    for(int i = 1; i <= n; i++)
+        S[i] = S[i - 1] + (ll)d[i];
+    // get f values.
+    for(int k = 1; k <= n; k++) {
+        if(d[k] > k)
+            f[k] = (ll)k*(ll)(n - k + 1);
         else {
-            del -= k*(k - 1ll);
-            del -= (tot - pref[m - 1ll]);
-            del -= k*(m - k - 1ll);
-            delta[k] = del;
-        }
-        diff[k] = delta[k] - k;
-    }
-    for(ll i = 1; i <= n; i++) {
-        if(i < n) {
-            ndelta[i] = deg[i + 1] + min(deg[i + 1], i + 1) - delta[i + 1];
-        }
-        else
-            ndelta[i] = n*(n + 1ll) - tot;
-    }
-    /*for(int i = 1; i <= n; i++)
-        cout << delta[i] << " " << ndelta[i] << endl;*/
-    node dtree = node(1, n, delta);
-    node ndtree = node(1, n, ndelta);
-    node difftree = node(1, n, diff);
-    bool alo = false;
-    for(int m = n; m >= 0; m--) {
-        // Check if guy can be d_{p + 1/2} idk i guess
-        // Deg must lie in range [lbnd, hbnd]
-        if(difftree.querymx(1, m) > 0)
-            continue;
-        ll lbnd = 0, hbnd = n - lv;
-        if(m < n)
-            lbnd = deg[m + 1];
-        if(m > 0)
-            hbnd = deg[m] - 1;
-        if(lbnd > hbnd)
-            continue;
-        if(m == 0) {
-            hbnd = min(hbnd, deg[1] + min(deg[1], 1ll) - delta[1]);
-        }
-        hbnd = min(hbnd, ndtree.query(m, n));
-        if(m > 0) {
-            lbnd = max(lbnd, dtree.querymx(1, m));
-        }
-        if(lbnd <= hbnd) {
-            for(int j = lbnd; j <= hbnd; j++) {
-                if(j % 2 == tot % 2) {
-                    alo = true;
-                    cout << j << " ";
-                }
+            int lo = k, hi = n;
+            while(lo < hi) {
+                int mi = (lo + hi + 1)/2;
+                if(d[mi] <= k) lo = mi;
+                else hi = mi - 1;
             }
+            f[k] = S[lo] - S[k - 1] + (ll)k*((ll)(n - lo));
         }
     }
-    if(!alo) {
-        cout << -1 << endl;
+    // calculate stuff
+    for(ll k = 1; k <= n; k++) {
+        ub[k] = k*(k + 1ll) + f[k + 1] - S[k];
+        lb[k] = S[k] - f[k] + min((ll)d[k], k) - k*(k - 1ll);
+        klb[k] = S[k] - f[k] + min((ll)d[k], k) - k*k;
+    }
+    // build trees
+    node ubt(1, n, ub), lbt(1, n, lb), klbt(1, n, klb);
+    ll cv = n, m = 1;
+    if((cv % 2) != (S[n] % 2)) cv--;
+    vector<ll> ans;
+    for(; cv >= 0; cv -= 2) {
+        if(cv > d[1]) {
+            if(ubt.qmin(m, n) < cv)
+                continue;
+            ans.push_back(cv);
+            continue;
+        }
+        if(cv <= d[n]) {
+            if(klbt.qmax(1, n) > 0 || lbt.qmax(1, n) > cv || cv + S[n] > (ll)n*((ll)(n + 1)))
+                continue;
+            ans.push_back(cv);
+            continue;
+        }
+        while(m < n + 1 && ((cv > d[m]) || (cv <= d[m + 1])))
+            m++;
+        //cout << cv << " " << m << " " << d[m - 1] << " " << d[m] << " " << d[m + 1] << endl;
+        if(klbt.qmax(1, m) > 0 || lbt.qmax(1, m) > cv || ubt.qmin(m, n) < cv)
+            continue;
+        ans.push_back(cv);
+    } 
+    if(ans.empty()) {
+        cout << "-1\n";
         return 0;
+    }
+    for(int i = ans.size() - 1; i >= 0; i--) {
+        //if(i > 0) assert(ans[i] == ans[i - 1] - 2);
+        //assert(ans[i] <= ((ll)n)*((ll)(n + 1ll)) - S[n]);
+        cout << ans[i] << " ";
     }
     cout << endl;
 }

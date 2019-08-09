@@ -2,7 +2,7 @@
 using namespace std;
 typedef long long ll;
 
-const int MAXF = 2e5 + 5;
+const int MAXF = 3e6 + 5;
 const int MAXN = 3e3 + 5;
 const ll MOD = 1e9 + 7;
 vector<pair<int, ll>> adj[MAXN];
@@ -43,7 +43,8 @@ int main() {
     fact[0] = 1;
     for(ll i = 1; i < MAXF; i++)
         fact[i] = (i * fact[i - 1]) % MOD;
-    cin >> h >> w >> n;
+    cin >> h >> n;
+    w = h;
     for(int i = 1; i <= n; i++) {
         int r, c;
         cin >> r >> c;
